@@ -1,5 +1,3 @@
-import png
-import numpy
 from PIL import Image, ImageDraw
 import sys, getopt
 

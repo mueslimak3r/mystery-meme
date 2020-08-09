@@ -9,8 +9,8 @@ python3 encode.py -i source-image.png -o exported-image.png
 
 # dependencies
 
-pypng
 pillow
+
 getopt
 
 wip and not functional yet
