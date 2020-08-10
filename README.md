@@ -1,14 +1,17 @@
 # mystery-meme
 experimental steganography encoder/decoder
 
+currently uses basic linear LSB encoding. Switching to a key-derived pseudo-random data distribution is WIP
+
 # usage
 
-It should work with any (common) image format. currently it only does stuff with formats that have an alpha channel (for testing/debugging).
+It should work with any (common) image format that pillow/PIL supports.
 
-python3 encode.py -i source-image.png -o exported-image.png 
+python3 encode.py -d data-to-hide.txt -i source-image.png -o exported-image.png
+
+python3 decode.py -i exported-image.png -o plaintext.txt
+
 
 # dependencies
 
 pillow
-
-# wip and not functional yet

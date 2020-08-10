@@ -1,6 +1,14 @@
 from PIL import Image
+from pathlib import Path
 import sys, getopt
 
+
+'''
+encode_hdata
+
+encodes two bits from the source text into the LSBs of the source image's green and blue channels
+
+'''
 
 def encode_hdata(g, b, pos, hdata, hdatapos, hdatabitpos):
 
@@ -27,8 +35,7 @@ def encode_hdata(g, b, pos, hdata, hdatapos, hdatabitpos):
 encoder
 
 opens image and converts to 4 x 8bit RGBA
-loops through image's 2D matrix and applies a function to the image
-
+loops through image's 2D matrix and encodes the source text into the image at 2 bits per pixel
 
 '''
 
@@ -38,8 +45,9 @@ def encoder(inputfile, outputfile, hiddendatafile):
     hdatareader = open(hiddendatafile)
     hdata = hdatareader.read()
 
-    print(hdata)
     print(img.mode)
+    print("input data will use ", Path(hiddendatafile).stat().st_size * 4, "of ", img.width * img.height, "pixels in the provided image")
+
     r, g, b, a = img.convert('RGBA').split()
 
     hdatalen = len(hdata)

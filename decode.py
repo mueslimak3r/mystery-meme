@@ -1,6 +1,13 @@
 from PIL import Image
 import sys, getopt
 
+'''
+decode_hdata
+
+retrieves the data stored the the green and blue channel's LSBs and appends it to a list
+
+'''
+
 def decode_hdata(g, b, pos, hdata, hdatapos, hdatabitpos):
     gpix = g.getpixel(pos)
     bpix = b.getpixel(pos)
@@ -16,9 +23,8 @@ def decode_hdata(g, b, pos, hdata, hdatapos, hdatabitpos):
 encoder
 
 opens image and converts to 4 x 8bit RGBA
-loops through image's 2D matrix and applies a function to the image
+loops through image's 2D matrix and decodes the hidden data at 2 bits per pixel
 
-for now the function applied just sets pixels to black. the next step will be encoding a hidden message
 '''
 
 def decoder(inputfile, outputfile):
@@ -42,7 +48,6 @@ def decoder(inputfile, outputfile):
 
             hdatabitpos += 2
             if hdatabitpos > 6:
-                #print(hdata[hdatapos])
                 hdatapos += 1
                 hdatabitpos = 0
 
