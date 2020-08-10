@@ -1,18 +1,27 @@
 from PIL import Image
 import sys, getopt
 
-'''
-setblack
 
+def encode_hdata(g, b, pos, hdata, hdatapos, hdatabitpos):
 
-debug function that sets pixels on rgb channels to black and makes them opaque
-'''
+    gpix = g.getpixel(pos)
+    bpix = b.getpixel(pos)
 
-def setblack (r, g, b, a, pos):
-    r.putpixel(pos, 0)
-    g.putpixel(pos, 0)
-    b.putpixel(pos, 0)
-    a.putpixel(pos, 255)
+    hdatabyte = ord(hdata[hdatapos])
+    gmask = (hdatabyte & (0x1 << hdatabitpos)) >> hdatabitpos
+    bmask = (hdatabyte & (0x1 << (hdatabitpos + 1))) >> (hdatabitpos + 1)
+
+    if gpix & 0x1 and gmask == 0:
+        gpix -= 1
+    else:
+        gpix |= gmask
+    if bpix & 0x1 and bmask == 0:
+        bpix -= 1
+    else:
+        bpix |= bmask
+
+    g.putpixel(pos, gpix)
+    b.putpixel(pos, bpix)
 
 '''
 encoder
@@ -20,24 +29,41 @@ encoder
 opens image and converts to 4 x 8bit RGBA
 loops through image's 2D matrix and applies a function to the image
 
-for now the function applied just sets pixels to black. the next step will be encoding a hidden message
+
 '''
 
-def encoder(inputfile, outputfile):
+def encoder(inputfile, outputfile, hiddendatafile):
 
     img = Image.open(inputfile)
+    hdatareader = open(hiddendatafile)
+    hdata = hdatareader.read()
 
+    print(hdata)
     print(img.mode)
     r, g, b, a = img.convert('RGBA').split()
+
+    hdatalen = len(hdata)
+    hdatapos = 0
+    hdatabitpos = 0
+
     for y in range(img.height):
         for x in range(img.width):
-            # just sets pixel with full transparency to solid black for debugging. This is where the hidden message will be encoded
-            if a.getpixel((x, y)) == 0:
-                setblack(r, g, b, a, (x, y))
+
+            if hdatapos < hdatalen:
+                encode_hdata(g, b, (x, y), hdata, hdatapos, hdatabitpos)
+
+            hdatabitpos += 2
+            if hdatabitpos > 6:
+                hdatapos += 1
+                hdatabitpos = 0
+
+
+
     newimage = Image.merge('RGBA', (r, g, b, a))
     newimage.save(outputfile, 'PNG')
     img.close()
     newimage.close()
+    hdatareader.close()
 
 '''
 main
@@ -48,28 +74,36 @@ then calls the 'encoder' function
 '''
 
 def main(argv):
+
     inputfile = ''
     outputfile = ''
+    hiddendatafile = ''
+
     try:
-        opts, args = getopt.getopt(argv,"hi:o:",["ifile=","ofile="])
+        opts, args = getopt.getopt(argv,"hd:i:o:",["hdata=", "ifile=","ofile="])
     except getopt.GetoptError:
-        print('encoder.py -i <inputfile> -o <outputfile>')
+        print('encoder.py -d <hiddendata> -i <inputfile> -o <outputfile>')
         sys.exit(2)
+
     for opt, arg in opts:
         if opt == '-h':
-            print ('encoder.py -i <inputfile> -o <outputfile>')
+            print ('encoder.py -d <hiddendata> -i <inputfile> -o <outputfile>')
             sys.exit()
+        elif opt in ("-d", "--hdata"):
+            hiddendatafile = arg
         elif opt in ("-i", "--ifile"):
             inputfile = arg
         elif opt in ("-o", "--ofile"):
             outputfile = arg
-         
-    if inputfile == '' or outputfile == '':
-        print('encoder.py -i <inputfile> -o <outputfile>')
+
+    if inputfile == '' or outputfile == '' or hiddendatafile == '':
+        print('encoder.py -d <hiddendata> -i <inputfile> -o <outputfile>')
         sys.exit(2)
+
     print ('Input file is "', inputfile)
     print ('Output file is "', outputfile)
-    encoder(inputfile, outputfile)
+    print ('Hidden data file is "', hiddendatafile)
+    encoder(inputfile, outputfile, hiddendatafile)
 
 if __name__ == "__main__":
    main(sys.argv[1:])
