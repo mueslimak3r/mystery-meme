@@ -4,7 +4,6 @@
 void	parse_source_file(unsigned char *data_ptr)
 {
 	uint64_t png_header = (uint64_t)*data_ptr;
-	
 }
 
 long	validate_input_file(char *filename)

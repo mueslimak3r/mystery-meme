@@ -19,21 +19,14 @@ def decode_hdata(g, b, pos, hdata, hdatapos, hdatabitpos):
 
     hdata[hdatapos] = str(chr(hdatabyte))
 
-'''
-encoder
-
-opens image and converts to 4 x 8bit RGBA
-loops through image's 2D matrix and decodes the hidden data at 2 bits per pixel
 
 '''
+decoder loop
 
-def decoder(inputfile, outputfile):
 
-    img = Image.open(inputfile)
-    hdata = []
 
-    print(hdata)
-    print(img.mode)
+'''
+def decoder_loop(img, hdata):
     r, g, b, a = img.convert('RGBA').split()
 
     hdatapos = 0
@@ -48,11 +41,28 @@ def decoder(inputfile, outputfile):
 
             hdatabitpos += 2
             if hdatabitpos > 6:
+                if ord(hdata[hdatapos]) == 0:
+                    return ;
                 hdatapos += 1
                 hdatabitpos = 0
 
-    hdatalen = hdatapos
+'''
+decoder
 
+opens image and converts to 4 x 8bit RGBA
+loops through image's 2D matrix and decodes the hidden data at 2 bits per pixel
+
+'''
+
+def decoder(inputfile, outputfile):
+
+    img = Image.open(inputfile)
+    hdata = []
+
+    print(hdata)
+    print(img.mode)
+
+    decoder_loop(img, hdata)
     print("".join(hdata))
 
     img.close()
