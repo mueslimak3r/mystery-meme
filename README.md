@@ -1,7 +1,7 @@
 # mystery-meme
 experimental steganography encoder/decoder
 
-currently uses basic linear LSB encoding. Switching to a key-derived pseudo-random data distribution is WIP
+currently uses basic linear LSB encoding. Switching to pseudo-random data distribution is WIP
 
 # usage
 

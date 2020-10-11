@@ -2,6 +2,7 @@ from PIL import Image
 from pathlib import Path
 import sys, getopt
 
+from imageviewer import view_image_object
 
 '''
 encode_hdata
@@ -69,6 +70,13 @@ def encoder(inputfile, outputfile, hiddendatafile):
 
     newimage = Image.merge('RGBA', (r, g, b, a))
     newimage.save(outputfile, 'PNG')
+
+    mode = newimage.mode
+    size = newimage.size
+    data = newimage.tobytes()
+
+    view_image_object(data, size, mode)
+
     img.close()
     newimage.close()
     hdatareader.close()
