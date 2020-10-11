@@ -1,6 +1,6 @@
 import sys, getopt
 from PIL import Image
-import random
+
 from generatepattern import generate_pattern
 
 '''
@@ -31,32 +31,23 @@ decoder loop
 def decoder_loop(img, hdata, seed):
     r, g, b, a = img.convert('RGBA').split()
 
-    #encode_mask = generate_pattern(seed, img.width, img.height, int((img.width * img.height) / 4))
+    encode_mask = generate_pattern(seed, img.width, img.height, int((img.width * img.height) / 4))
     hdatapos = 0
     hdatabitpos = 0
-    random.seed(seed)
-    for _ in range(int(img.width * img.height)):
-        x, y = random.randint(0, img.width - 1), random.randint(0, img.height - 1)
-        if hdatabitpos == 0:
-            hdata.append('\0')
-        decode_hdata(g, b, (x, y), hdata, hdatapos, hdatabitpos)    
-        hdatabitpos += 2
-        if hdatabitpos > 6:
-            if ord(hdata[hdatapos]) == 0:
-                return
-            hdatapos += 1
-            hdatabitpos = 0
-    '''
+
     for y in range(img.height):
         for x in range(img.width):
             if encode_mask[(y * img.width) + x] == 1:
-    '''
-                
-                
-                    
-                        
-                    
-                    
+                if hdatabitpos == 0:
+                    hdata.append('\0')
+                decode_hdata(g, b, (x, y), hdata, hdatapos, hdatabitpos)
+
+                hdatabitpos += 2
+                if hdatabitpos > 6:
+                    if ord(hdata[hdatapos]) == 0:
+                        return
+                    hdatapos += 1
+                    hdatabitpos = 0
 
 '''
 decoder
@@ -79,7 +70,7 @@ def decoder(inputfile, outputfile, seed):
     print(data)
     f = open(outputfile, "w")
     f.write(data)
-    
+
     img.close()
 
 '''
