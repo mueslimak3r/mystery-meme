@@ -57,7 +57,7 @@ def encoder(inputfile, outputfile, hiddendatafile, seed):
 
     print("input data will use ", hdatalen * 4, "of ", img.width * img.height, "pixels in the provided image")
 
-    encode_mask = generate_pattern(seed, img.width, img.height, int((img.width * img.height) / 2))
+    encode_mask = generate_pattern(seed, img.width, img.height, int((img.width * img.height) / 4))
 
     for y in range(img.height):
         for x in range(img.width):
