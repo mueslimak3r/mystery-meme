@@ -1,7 +1,7 @@
 from PIL import Image
 from pathlib import Path
 import sys, getopt
-
+import random
 from imageviewer import view_image_object
 from generatepattern import generate_pattern
 '''
@@ -57,30 +57,37 @@ def encoder(inputfile, outputfile, hiddendatafile, seed):
 
     print("input data will use ", hdatalen * 4, "of ", img.width * img.height, "pixels in the provided image")
 
-    encode_mask = generate_pattern(seed, img.width, img.height, int((img.width * img.height) / 4))
-
+    #encode_mask = generate_pattern(seed, img.width, img.height, int((img.width * img.height) / 4))
+    random.seed(seed)
+    for _ in range(hdatalen * 4):
+        x, y = random.randint(0, img.width - 1), random.randint(0, img.height - 1)
+        if hdatapos < hdatalen:
+            encode_hdata(g, b, (x, y), hdata, hdatapos, hdatabitpos)
+            hdatabitpos += 2
+            if hdatabitpos > 6:
+                hdatapos += 1
+                hdatabitpos = 0
+    '''
     for y in range(img.height):
         for x in range(img.width):
 
             if encode_mask[(y * img.width) + x] == 1:
-                if hdatapos < hdatalen:
-                    encode_hdata(g, b, (x, y), hdata, hdatapos, hdatabitpos)
-
-                hdatabitpos += 2
-                if hdatabitpos > 6:
-                    hdatapos += 1
-                    hdatabitpos = 0
-
+                
+    '''
 
 
     newimage = Image.merge('RGBA', (r, g, b, a))
     newimage.save(outputfile, 'PNG')
 
+    '''
     mode = newimage.mode
     size = newimage.size
     data = newimage.tobytes()
 
-    #view_image_object(data, size, mode)
+    view_image_object(data, size, mode)
+    '''
+
+    generate_pattern(seed, img.width, img.height, hdatalen * 4)
 
     img.close()
     newimage.close()
