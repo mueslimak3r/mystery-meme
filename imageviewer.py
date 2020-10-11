@@ -45,7 +45,7 @@ def render_img(S = None):
         screen.fill((0,0,0))
         screen.blit(C, (0,0))
         pygame.display.flip()
-        pygame.time.delay(500)
+        pygame.time.wait(500)
 
 def view_image_object(imgobject, size, mode):
     S = pygame.image.fromstring(imgobject, size, mode)
