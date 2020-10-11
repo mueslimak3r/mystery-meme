@@ -66,7 +66,10 @@ def decoder(inputfile, outputfile, seed):
     print(img.mode)
 
     decoder_loop(img, hdata, seed)
-    print("".join(hdata))
+    data = "".join(hdata)
+    print(data)
+    f = open(outputfile, "w")
+    f.write(data)
 
     img.close()
 
