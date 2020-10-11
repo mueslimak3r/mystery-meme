@@ -1,5 +1,7 @@
-from PIL import Image
 import sys, getopt
+from PIL import Image
+
+from generatepattern import generate_pattern
 
 '''
 decode_hdata
@@ -26,25 +28,26 @@ decoder loop
 
 
 '''
-def decoder_loop(img, hdata):
+def decoder_loop(img, hdata, seed):
     r, g, b, a = img.convert('RGBA').split()
 
+    encode_mask = generate_pattern(seed, img.width, img.height, int((img.width * img.height) / 2))
     hdatapos = 0
     hdatabitpos = 0
 
     for y in range(img.height):
         for x in range(img.width):
+            if encode_mask[(y * img.width) + x] == 1:
+                if hdatabitpos == 0:
+                    hdata.append('\0')
+                decode_hdata(g, b, (x, y), hdata, hdatapos, hdatabitpos)
 
-            if hdatabitpos == 0:
-                hdata.append('\0')
-            decode_hdata(g, b, (x, y), hdata, hdatapos, hdatabitpos)
-
-            hdatabitpos += 2
-            if hdatabitpos > 6:
-                if ord(hdata[hdatapos]) == 0:
-                    return ;
-                hdatapos += 1
-                hdatabitpos = 0
+                hdatabitpos += 2
+                if hdatabitpos > 6:
+                    if ord(hdata[hdatapos]) == 0:
+                        return
+                    hdatapos += 1
+                    hdatabitpos = 0
 
 '''
 decoder
@@ -54,7 +57,7 @@ loops through image's 2D matrix and decodes the hidden data at 2 bits per pixel
 
 '''
 
-def decoder(inputfile, outputfile):
+def decoder(inputfile, outputfile, seed):
 
     img = Image.open(inputfile)
     hdata = []
@@ -62,7 +65,7 @@ def decoder(inputfile, outputfile):
     print(hdata)
     print(img.mode)
 
-    decoder_loop(img, hdata)
+    decoder_loop(img, hdata, seed)
     print("".join(hdata))
 
     img.close()
@@ -79,29 +82,33 @@ def main(argv):
 
     inputfile = ''
     outputfile = ''
+    seed = 0
 
     try:
-        opts, args = getopt.getopt(argv,"hi:o:",["ifile=","ofile="])
+        opts, args = getopt.getopt(argv,"hi:o:s:",["ifile=","ofile=", "seed="])
     except getopt.GetoptError:
-        print('encoder.py -i <inputfile> -o <outputfile>')
+        print('decode.py -i <inputfile> -o <outputfile> -s <seed(integer)>')
         sys.exit(2)
 
     for opt, arg in opts:
         if opt == '-h':
-            print ('encoder.py -i <inputfile> -o <outputfile>')
+            print('decode.py -i <inputfile> -o <outputfile> -s <seed(integer)>')
             sys.exit()
         elif opt in ("-i", "--ifile"):
             inputfile = arg
         elif opt in ("-o", "--ofile"):
             outputfile = arg
-
-    if inputfile == '' or outputfile == '':
-        print('encoder.py -i <inputfile> -o <outputfile>')
+        elif opt in ("-s", "--seed"):
+            seed = int(arg)
+    if inputfile == '' or outputfile == '' or seed <= 0:
+        print('decode.py -i <inputfile> -o <outputfile> -s <seed(integer)>')
         sys.exit(2)
 
-    print ('Input file is "', inputfile)
-    print ('Output file is "', outputfile)
-    decoder(inputfile, outputfile)
+    print ('Seed is -', seed)
+    print ('Input file is -', inputfile)
+    print ('Output file is -', outputfile)
+    
+    decoder(inputfile, outputfile, seed)
 
 if __name__ == "__main__":
    main(sys.argv[1:])

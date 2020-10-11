@@ -3,7 +3,7 @@ from pathlib import Path
 import sys, getopt
 
 from imageviewer import view_image_object
-
+from generatepattern import generate_pattern
 '''
 encode_hdata
 
@@ -40,31 +40,36 @@ loops through image's 2D matrix and encodes the source text into the image at 2 
 
 '''
 
-def encoder(inputfile, outputfile, hiddendatafile):
+def encoder(inputfile, outputfile, hiddendatafile, seed):
 
     img = Image.open(inputfile)
     hdatareader = open(hiddendatafile)
     hdata = hdatareader.read()
 
     print(img.mode)
-    print("input data will use ", Path(hiddendatafile).stat().st_size * 4, "of ", img.width * img.height, "pixels in the provided image")
-
+    hdata_size = Path(hiddendatafile).stat().st_size * 4
+    
     r, g, b, a = img.convert('RGBA').split()
 
     hdatalen = len(hdata)
     hdatapos = 0
     hdatabitpos = 0
 
+    print("input data will use ", hdatalen * 4, "of ", img.width * img.height, "pixels in the provided image")
+
+    encode_mask = generate_pattern(seed, img.width, img.height, int((img.width * img.height) / 2))
+
     for y in range(img.height):
         for x in range(img.width):
 
-            if hdatapos < hdatalen:
-                encode_hdata(g, b, (x, y), hdata, hdatapos, hdatabitpos)
+            if encode_mask[(y * img.width) + x] == 1:
+                if hdatapos < hdatalen:
+                    encode_hdata(g, b, (x, y), hdata, hdatapos, hdatabitpos)
 
-            hdatabitpos += 2
-            if hdatabitpos > 6:
-                hdatapos += 1
-                hdatabitpos = 0
+                hdatabitpos += 2
+                if hdatabitpos > 6:
+                    hdatapos += 1
+                    hdatabitpos = 0
 
 
 
@@ -75,7 +80,7 @@ def encoder(inputfile, outputfile, hiddendatafile):
     size = newimage.size
     data = newimage.tobytes()
 
-    view_image_object(data, size, mode)
+    #view_image_object(data, size, mode)
 
     img.close()
     newimage.close()
@@ -94,16 +99,17 @@ def main(argv):
     inputfile = ''
     outputfile = ''
     hiddendatafile = ''
+    seed = 0
 
     try:
-        opts, args = getopt.getopt(argv,"hd:i:o:",["hdata=", "ifile=","ofile="])
+        opts, args = getopt.getopt(argv,"hd:i:o:s:",["hdata=", "ifile=","ofile=", "seed="])
     except getopt.GetoptError:
-        print('encoder.py -d <hiddendata> -i <inputfile> -o <outputfile>')
+        print('encode.py -d <hiddendata> -i <inputfile> -o <outputfile> -s <seed(integer)>')
         sys.exit(2)
 
     for opt, arg in opts:
         if opt == '-h':
-            print ('encoder.py -d <hiddendata> -i <inputfile> -o <outputfile>')
+            print('encode.py -d <hiddendata> -i <inputfile> -o <outputfile> -s <seed(integer)>')
             sys.exit()
         elif opt in ("-d", "--hdata"):
             hiddendatafile = arg
@@ -111,15 +117,18 @@ def main(argv):
             inputfile = arg
         elif opt in ("-o", "--ofile"):
             outputfile = arg
+        elif opt in ("-s", "--seed"):
+            seed = int(arg)
 
-    if inputfile == '' or outputfile == '' or hiddendatafile == '':
-        print('encoder.py -d <hiddendata> -i <inputfile> -o <outputfile>')
+    if inputfile == '' or outputfile == '' or hiddendatafile == '' or seed <= 0:
+        print('encode.py -d <hiddendata> -i <inputfile> -o <outputfile> -s <seed(integer)>')
         sys.exit(2)
-
+    
+    print ('Seed is -', seed)
     print ('Input file is "', inputfile)
     print ('Output file is "', outputfile)
     print ('Hidden data file is "', hiddendatafile)
-    encoder(inputfile, outputfile, hiddendatafile)
+    encoder(inputfile, outputfile, hiddendatafile, seed)
 
 if __name__ == "__main__":
    main(sys.argv[1:])

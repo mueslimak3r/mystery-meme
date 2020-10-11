@@ -4,7 +4,7 @@ import pygame
 
 def reset_screen(res) :
     screen = pygame.display.set_mode(res)
-    pygame.display.set_caption("image viewer")
+    pygame.display.set_caption("press q or esc to exit")
     return screen
 
 
@@ -27,7 +27,7 @@ def render_img(S = None):
 
             if e.type == pygame.KEYDOWN :
                 if e.key == pygame.K_ESCAPE or e.key == pygame.K_q:
-                    sys.exit()
+                    return
                 if e.key == pygame.K_MINUS and width_scale > 0.125:
                     width_scale *= 0.5
                     height_scale *= 0.5
