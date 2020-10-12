@@ -4,74 +4,77 @@ from PIL import Image
 from generatepattern import generate_pattern
 
 '''
-decode_hdata
+extract_bits
 
 retrieves the data stored the the green and blue channel's LSBs and appends it to a list
 
 '''
 
-def decode_hdata(g, b, pos, hdata, hdatapos, hdatabitpos):
-    gpix = g.getpixel(pos)
-    bpix = b.getpixel(pos)
+def extract_bits(g, b, image_pos, extracted_data, extracted_data_iter, extracted_data_bit_iter):
+    green_channel_pixel = g.getpixel(image_pos)
+    blue_channel_pixel = b.getpixel(image_pos)
 
-    hdatabyte = ord(hdata[hdatapos])
+    selected_byte = ord(extracted_data[extracted_data_iter])
 
-    hdatabyte |= (gpix & 0x1) << hdatabitpos
-    hdatabyte |= (bpix & 0x1) << (hdatabitpos + 1)
+    selected_byte |= (green_channel_pixel & 0x1) << extracted_data_bit_iter
+    selected_byte |= (blue_channel_pixel & 0x1) << (extracted_data_bit_iter + 1)
 
-    hdata[hdatapos] = str(chr(hdatabyte))
-
-
-'''
-decoder loop
-
+    extracted_data[extracted_data_iter] = str(chr(selected_byte))
 
 
 '''
-def decoder_loop(img, hdata, seed):
+retrieve_hidden_data_loop
+
+splits image into individual lists of bytes, one for each of the 4 channels in the image (red, green, blue, alpha)
+
+uses generator function, supplied with the seed, to generate x, y pairs
+The last call of this function opens the pygame window that displays the pattern visually
+
+for each x,y pair 2 bits will be extracted via extract_bits and saved into the extracted_data list
+
+'''
+
+def retrieve_hidden_data_loop(img, extracted_data, seed):
     r, g, b, a = img.convert('RGBA').split()
 
-    encode_mask, pixel_count = generate_pattern(seed, img.width, img.height, int((img.width * img.height) / 2))
-    hdatapos = 0
-    hdatabitpos = 0
+    extracted_data_iter = 0
+    extracted_data_bit_iter = 0
 
-    for y in range(img.height):
-        for x in range(img.width):
-            if encode_mask[(y * img.width) + x] == 1:
-                if hdatabitpos == 0:
-                    hdata.append('\0')
-                decode_hdata(g, b, (x, y), hdata, hdatapos, hdatabitpos)
-
-                hdatabitpos += 2
-                if hdatabitpos > 6:
-                    if ord(hdata[hdatapos]) == 0:
-                        return
-                    hdatapos += 1
-                    hdatabitpos = 0
+    for x, y in generate_pattern(seed, img.width, img.height, img.width * img.height):
+        if extracted_data_bit_iter == 0:
+            extracted_data.append('\0')
+        extract_bits(g, b, (x, y), extracted_data, extracted_data_iter, extracted_data_bit_iter)
+        extracted_data_bit_iter += 2
+        if extracted_data_bit_iter > 6:
+            if ord(extracted_data[extracted_data_iter]) == 0:
+                return
+            extracted_data_iter += 1
+            extracted_data_bit_iter = 0
 
 '''
-decoder
+decoder_wrapper
 
 opens image and converts to 4 x 8bit RGBA
-loops through image's 2D matrix and decodes the hidden data at 2 bits per pixel
 
+calls retrieve_hidden_data_loop
+
+saves the data to outputfile and writes it to STDOUT
 '''
 
-def decoder(inputfile, outputfile, seed):
+def decoder_wrapper(inputfile, outputfile, seed):
 
     img = Image.open(inputfile)
-    hdata = []
+    extracted_data = []
 
-    print(hdata)
-    print(img.mode)
+    retrieve_hidden_data_loop(img, extracted_data, seed)
+    data_as_string = "".join(extracted_data)
 
-    decoder_loop(img, hdata, seed)
-    data = "".join(hdata)
-    print(data)
     f = open(outputfile, "w")
-    f.write(data)
-
+    f.write(data_as_string)
     img.close()
+    f.close()
+    print(data_as_string)
+
 
 '''
 main
@@ -107,11 +110,7 @@ def main(argv):
         print('decode.py -i <inputfile> -o <outputfile> -s <seed(integer)>')
         sys.exit(2)
 
-    print ('Seed is - ', seed)
-    print ('Input file is - ', inputfile)
-    print ('Output file is - ', outputfile)
-    
-    decoder(inputfile, outputfile, seed)
+    decoder_wrapper(inputfile, outputfile, seed)
 
 if __name__ == "__main__":
    main(sys.argv[1:])

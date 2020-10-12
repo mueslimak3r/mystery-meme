@@ -1,42 +1,51 @@
-from PIL import Image
-from pathlib import Path
 import sys, getopt
 
-from imageviewer import view_image_object
+from PIL import Image
+from pathlib import Path
+
 from generatepattern import generate_pattern
+
 '''
-encode_hdata
+encode_bits
 
 encodes two bits from the source text into the LSBs of the source image's green and blue channels
 
 '''
 
-def encode_hdata(g, b, pos, hdata, hdatapos, hdatabitpos):
+def encode_bits(g, b, image_pos, input_data, input_data_iter, input_data_bit_iter):
 
-    gpix = g.getpixel(pos)
-    bpix = b.getpixel(pos)
+    green_channel_pixel = g.getpixel(image_pos)
+    blue_channel_pixel = b.getpixel(image_pos)
 
-    hdatabyte = ord(hdata[hdatapos])
-    gmask = (hdatabyte & (0x1 << hdatabitpos)) >> hdatabitpos
-    bmask = (hdatabyte & (0x1 << (hdatabitpos + 1))) >> (hdatabitpos + 1)
+    hdatabyte = ord(input_data[input_data_iter])
+    
+    green_pixel_bitmask = (hdatabyte & (0x1 << input_data_bit_iter)) >> input_data_bit_iter
+    blue_pixel_bitmask = (hdatabyte & (0x1 << (input_data_bit_iter + 1))) >> (input_data_bit_iter + 1)
 
-    if gpix & 0x1 and gmask == 0:
-        gpix -= 1
+    if green_channel_pixel & 0x1 and green_pixel_bitmask == 0:
+        green_channel_pixel -= 1
     else:
-        gpix |= gmask
-    if bpix & 0x1 and bmask == 0:
-        bpix -= 1
-    else:
-        bpix |= bmask
+        green_channel_pixel |= green_pixel_bitmask
 
-    g.putpixel(pos, gpix)
-    b.putpixel(pos, bpix)
+    if blue_channel_pixel & 0x1 and blue_pixel_bitmask == 0:
+        blue_channel_pixel -= 1
+    else:
+        blue_channel_pixel |= blue_pixel_bitmask
+
+    g.putpixel(image_pos, green_channel_pixel)
+    b.putpixel(image_pos, blue_channel_pixel)
 
 '''
 encoder
 
 opens image and converts to 4 x 8bit RGBA
-loops through image's 2D matrix and encodes the source text into the image at 2 bits per pixel
+
+uses generator function, supplied with the seed, to generate x, y pairs
+The last call of this function opens the pygame window that displays the pattern visually
+
+for each x,y pair 2 bits will be encoded via encode_bits and saved into the g, b lists
+
+the 4 channels are merged into a new image object and saved to the filesystem
 
 '''
 
@@ -44,45 +53,32 @@ def encoder(inputfile, outputfile, hiddendatafile, seed):
 
     img = Image.open(inputfile)
     hdatareader = open(hiddendatafile)
-    hdata = hdatareader.read()
+    input_data = hdatareader.read()
+    input_data += "\00"
 
-    print(img.mode)
-    hdata_size = Path(hiddendatafile).stat().st_size * 4
-    
     r, g, b, a = img.convert('RGBA').split()
 
-    hdatalen = len(hdata)
-    hdatapos = 0
-    hdatabitpos = 0
+    input_data_len = len(input_data) * 4
+    input_data_iter = 0
+    input_data_bit_iter = 0
 
-    print("input data will use ", hdatalen * 4, "of ", img.width * img.height, "pixels in the provided image")
-
-    encode_mask, pixel_count = generate_pattern(seed, img.width, img.height, int((img.width * img.height) / 2))
-    if pixel_count < hdatalen * 4:
+    print("image mode before conversion: ", img.mode)
+    if input_data_len > img.width * img.height:
         print("input data too large")
         return
-    for y in range(img.height):
-        for x in range(img.width):
+    print("input data will affect ", input_data_len, " of ", img.width * img.height, "pixels in the image")
 
-            if encode_mask[(y * img.width) + x] == 1:
-                if hdatapos < hdatalen:
-                    encode_hdata(g, b, (x, y), hdata, hdatapos, hdatabitpos)
+    for x, y in generate_pattern(seed, img.width, img.height, input_data_len):
+        encode_bits(g, b, (x, y), input_data, input_data_iter, input_data_bit_iter)
+        input_data_bit_iter += 2
+        if input_data_bit_iter > 6:
+            input_data_iter += 1
+            input_data_bit_iter = 0
 
-                hdatabitpos += 2
-                if hdatabitpos > 6:
-                    hdatapos += 1
-                    hdatabitpos = 0
-
-
-
+    #print (hdata)
+ 
     newimage = Image.merge('RGBA', (r, g, b, a))
     newimage.save(outputfile, 'PNG')
-
-    mode = newimage.mode
-    size = newimage.size
-    data = newimage.tobytes()
-
-    #view_image_object(data, size, mode)
 
     img.close()
     newimage.close()
@@ -106,12 +102,12 @@ def main(argv):
     try:
         opts, args = getopt.getopt(argv,"hd:i:o:s:",["hdata=", "ifile=","ofile=", "seed="])
     except getopt.GetoptError:
-        print('encode.py -d <hiddendata> -i <inputfile> -o <outputfile> -s <seed(integer)>')
+        print('encode.py -d <data to encode> -i <input image file> -o <output image file> -s <seed(integer)>')
         sys.exit(2)
 
     for opt, arg in opts:
         if opt == '-h':
-            print('encode.py -d <hiddendata> -i <inputfile> -o <outputfile> -s <seed(integer)>')
+            print('encode.py -d <data to encode> -i <input image file> -o <output image file> -s <seed(integer)>')
             sys.exit()
         elif opt in ("-d", "--hdata"):
             hiddendatafile = arg
@@ -123,13 +119,13 @@ def main(argv):
             seed = int(arg)
 
     if inputfile == '' or outputfile == '' or hiddendatafile == '' or seed <= 0:
-        print('encode.py -d <hiddendata> -i <inputfile> -o <outputfile> -s <seed(integer)>')
+        print('encode.py -d <data to encode> -i <input image file> -o <output image file> -s <seed(integer)>')
         sys.exit(2)
     
     print ('Seed is - ', seed)
-    print ('Input file is - ', inputfile)
-    print ('Output file is - ', outputfile)
-    print ('Hidden data file is - ', hiddendatafile)
+    print ('Input image file is - ', inputfile)
+    print ('Output image file is - ', outputfile)
+    print ('File with data to encode is - ', hiddendatafile)
     encoder(inputfile, outputfile, hiddendatafile, seed)
 
 if __name__ == "__main__":
