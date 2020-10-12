@@ -57,8 +57,10 @@ def encoder(inputfile, outputfile, hiddendatafile, seed):
 
     print("input data will use ", hdatalen * 4, "of ", img.width * img.height, "pixels in the provided image")
 
-    encode_mask = generate_pattern(seed, img.width, img.height, int((img.width * img.height) / 4))
-
+    encode_mask, pixel_count = generate_pattern(seed, img.width, img.height, int((img.width * img.height) / 2))
+    if pixel_count < hdatalen * 4:
+        print("input data too large")
+        return
     for y in range(img.height):
         for x in range(img.width):
 
@@ -124,10 +126,10 @@ def main(argv):
         print('encode.py -d <hiddendata> -i <inputfile> -o <outputfile> -s <seed(integer)>')
         sys.exit(2)
     
-    print ('Seed is -', seed)
-    print ('Input file is "', inputfile)
-    print ('Output file is "', outputfile)
-    print ('Hidden data file is "', hiddendatafile)
+    print ('Seed is - ', seed)
+    print ('Input file is - ', inputfile)
+    print ('Output file is - ', outputfile)
+    print ('Hidden data file is - ', hiddendatafile)
     encoder(inputfile, outputfile, hiddendatafile, seed)
 
 if __name__ == "__main__":

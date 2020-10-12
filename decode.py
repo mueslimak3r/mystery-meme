@@ -31,7 +31,7 @@ decoder loop
 def decoder_loop(img, hdata, seed):
     r, g, b, a = img.convert('RGBA').split()
 
-    encode_mask = generate_pattern(seed, img.width, img.height, int((img.width * img.height) / 4))
+    encode_mask, pixel_count = generate_pattern(seed, img.width, img.height, int((img.width * img.height) / 2))
     hdatapos = 0
     hdatabitpos = 0
 
@@ -107,9 +107,9 @@ def main(argv):
         print('decode.py -i <inputfile> -o <outputfile> -s <seed(integer)>')
         sys.exit(2)
 
-    print ('Seed is -', seed)
-    print ('Input file is -', inputfile)
-    print ('Output file is -', outputfile)
+    print ('Seed is - ', seed)
+    print ('Input file is - ', inputfile)
+    print ('Output file is - ', outputfile)
     
     decoder(inputfile, outputfile, seed)
 

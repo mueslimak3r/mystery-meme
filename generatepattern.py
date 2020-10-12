@@ -32,7 +32,7 @@ def generate_pattern(seed, width, height, datasize):
     data = image.tobytes()
 
     view_image_object(data, size, mode)
-    return mask
+    return mask, unique_pixel_counter
 
 if __name__ == "__main__":
     generate_pattern(42, 500, 500, 1000)

@@ -18,7 +18,7 @@ def render_img(S = None):
     screen = reset_screen((int(S.get_width() * width_scale), int(S.get_height() * height_scale)))
     S = S.convert()
     C = S.copy()
-
+    state_changed = 1
     while True :
 
         for e in pygame.event.get() :
@@ -34,18 +34,22 @@ def render_img(S = None):
                 if e.key == pygame.K_EQUALS and S.get_height() * height_scale < 10000.0 and S.get_width() * width_scale < 10000.0:
                     width_scale *= 2.0
                     height_scale *= 2.0
+                    state_changed = 1
                 if e.key == pygame.K_0:
                     width_scale = 1.0
                     height_scale = 1.0
-
-        C = pygame.transform.scale(C, (int(S.get_width()), int(S.get_height())))
-        C.blit(S, (0, 0))
-        C = pygame.transform.scale(C, (int(C.get_width() * width_scale), int(C.get_height() * height_scale)))
-        screen = reset_screen((C.get_width(), C.get_height()))
-        screen.fill((0,0,0))
-        screen.blit(C, (0,0))
-        pygame.display.flip()
-        pygame.time.wait(500)
+                    state_changed = 1
+                
+        if state_changed == 1:
+            C = pygame.transform.scale(C, (int(S.get_width()), int(S.get_height())))
+            C.blit(S, (0, 0))
+            C = pygame.transform.scale(C, (int(C.get_width() * width_scale), int(C.get_height() * height_scale)))
+            screen = reset_screen((C.get_width(), C.get_height()))
+            screen.fill((0,0,0))
+            screen.blit(C, (0,0))
+            pygame.display.flip()
+            pygame.time.wait(500)
+        state_changed = 0
 
 def view_image_object(imgobject, size, mode):
     S = pygame.image.fromstring(imgobject, size, mode)
