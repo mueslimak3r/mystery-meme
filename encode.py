@@ -17,10 +17,10 @@ def encode_bits(g, b, image_pos, input_data, input_data_iter, input_data_bit_ite
     green_channel_pixel = g.getpixel(image_pos)
     blue_channel_pixel = b.getpixel(image_pos)
 
-    hdatabyte = ord(input_data[input_data_iter])
+    selected_byte = ord(input_data[input_data_iter])
     
-    green_pixel_bitmask = (hdatabyte & (0x1 << input_data_bit_iter)) >> input_data_bit_iter
-    blue_pixel_bitmask = (hdatabyte & (0x1 << (input_data_bit_iter + 1))) >> (input_data_bit_iter + 1)
+    green_pixel_bitmask = (selected_byte & (0x1 << input_data_bit_iter)) >> input_data_bit_iter
+    blue_pixel_bitmask = (selected_byte & (0x1 << (input_data_bit_iter + 1))) >> (input_data_bit_iter + 1)
 
     if green_channel_pixel & 0x1 and green_pixel_bitmask == 0:
         green_channel_pixel -= 1
@@ -40,6 +40,8 @@ encoder
 
 opens image and converts to 4 x 8bit RGBA
 
+reads input data, and appends null byte to signal EOF for decoder
+
 uses generator function, supplied with the seed, to generate x, y pairs
 The last call of this function opens the pygame window that displays the pattern visually
 
@@ -49,10 +51,10 @@ the 4 channels are merged into a new image object and saved to the filesystem
 
 '''
 
-def encoder(inputfile, outputfile, hiddendatafile, seed):
+def encoder(input_image, output_image, input_data_file, seed):
 
-    img = Image.open(inputfile)
-    hdatareader = open(hiddendatafile)
+    img = Image.open(input_image)
+    hdatareader = open(input_data_file)
     input_data = hdatareader.read()
     input_data += "\00"
 
@@ -78,7 +80,7 @@ def encoder(inputfile, outputfile, hiddendatafile, seed):
     #print (hdata)
  
     newimage = Image.merge('RGBA', (r, g, b, a))
-    newimage.save(outputfile, 'PNG')
+    newimage.save(output_image, 'PNG')
 
     img.close()
     newimage.close()
@@ -87,16 +89,15 @@ def encoder(inputfile, outputfile, hiddendatafile, seed):
 '''
 main
 
-gets arguments using getopt,
-checks for errors using getopts format checking and the getopterror exception,
-then calls the 'encoder' function
+gets arguments using getopt
+
 '''
 
 def main(argv):
 
-    inputfile = ''
-    outputfile = ''
-    hiddendatafile = ''
+    input_image = ''
+    input_data_file = ''
+    output_image = ''
     seed = 0
 
     try:
@@ -110,23 +111,23 @@ def main(argv):
             print('encode.py -d <data to encode> -i <input image file> -o <output image file> -s <seed(integer)>')
             sys.exit()
         elif opt in ("-d", "--hdata"):
-            hiddendatafile = arg
+            input_data_file = arg
         elif opt in ("-i", "--ifile"):
-            inputfile = arg
+            input_image = arg
         elif opt in ("-o", "--ofile"):
-            outputfile = arg
+            output_image = arg
         elif opt in ("-s", "--seed"):
             seed = int(arg)
 
-    if inputfile == '' or outputfile == '' or hiddendatafile == '' or seed <= 0:
+    if input_image == '' or output_image == '' or input_data_file == '' or seed <= 0:
         print('encode.py -d <data to encode> -i <input image file> -o <output image file> -s <seed(integer)>')
         sys.exit(2)
     
     print ('Seed is - ', seed)
-    print ('Input image file is - ', inputfile)
-    print ('Output image file is - ', outputfile)
-    print ('File with data to encode is - ', hiddendatafile)
-    encoder(inputfile, outputfile, hiddendatafile, seed)
+    print ('File with data to encode is - ', input_data_file)
+    print ('Input image file is - ', input_image)
+    print ('Output image file is - ', output_image)
+    encoder(input_image, output_image, input_data_file, seed)
 
 if __name__ == "__main__":
    main(sys.argv[1:])

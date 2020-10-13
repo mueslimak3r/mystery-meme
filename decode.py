@@ -54,22 +54,22 @@ def retrieve_hidden_data_loop(img, extracted_data, seed):
 '''
 decoder_wrapper
 
-opens image and converts to 4 x 8bit RGBA
+opens input_image and converts to 4 x 8bit RGBA
 
 calls retrieve_hidden_data_loop
 
-saves the data to outputfile and writes it to STDOUT
+writed decoded data to output_image and STDOUT
 '''
 
-def decoder_wrapper(inputfile, outputfile, seed):
+def decoder_wrapper(input_image, output_image, seed):
 
-    img = Image.open(inputfile)
+    img = Image.open(input_image)
     extracted_data = []
 
     retrieve_hidden_data_loop(img, extracted_data, seed)
-    data_as_string = "".join(extracted_data)
+    data_as_string = "".join(extracted_data)[:-1]
 
-    f = open(outputfile, "w")
+    f = open(output_image, "w", encoding="utf-8")
     f.write(data_as_string)
     img.close()
     f.close()
@@ -79,15 +79,14 @@ def decoder_wrapper(inputfile, outputfile, seed):
 '''
 main
 
-gets arguments using getopt,
-checks for errors using getopts format checking and the getopterror exception,
-then calls the 'encoder' function
+gets arguments using getopt
+
 '''
 
 def main(argv):
 
-    inputfile = ''
-    outputfile = ''
+    input_image = ''
+    output_image = ''
     seed = 0
 
     try:
@@ -101,16 +100,16 @@ def main(argv):
             print('decode.py -i <inputfile> -o <outputfile> -s <seed(integer)>')
             sys.exit()
         elif opt in ("-i", "--ifile"):
-            inputfile = arg
+            input_image = arg
         elif opt in ("-o", "--ofile"):
-            outputfile = arg
+            output_image = arg
         elif opt in ("-s", "--seed"):
             seed = int(arg)
-    if inputfile == '' or outputfile == '' or seed <= 0:
+    if input_image == '' or output_image == '' or seed <= 0:
         print('decode.py -i <inputfile> -o <outputfile> -s <seed(integer)>')
         sys.exit(2)
 
-    decoder_wrapper(inputfile, outputfile, seed)
+    decoder_wrapper(input_image, output_image, seed)
 
 if __name__ == "__main__":
    main(sys.argv[1:])
