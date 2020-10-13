@@ -15,6 +15,11 @@ python decode.py -i exported-image.png -o plaintext.txt -s 1234(seed)
 
 python imageviewer.py image.png
 
+Image viewer controls:
+
+Quit - q / escape
+Zoom - + / -
+
 
 # dependencies
 
