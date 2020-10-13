@@ -7,18 +7,20 @@ data is hidden in pixel data, in the least significant bits of the green and blu
 
 It should work with any (common) image format that pillow/PIL supports.
 
-python3 encode.py -d data-to-hide.txt -i source-image.png -o exported-image.png -s seed(integer) 
+python encode.py -d data-to-hide.txt -i source-image.png -o exported-image.png -s seed(integer) 
 
-python3 decode.py -i exported-image.png -o plaintext.txt -s seed (integer) 
+python decode.py -i exported-image.png -o plaintext.txt -s seed (integer) 
 
 
 
-python3 imageviewer.py image.png
+python imageviewer.py image.png
 
 
 # dependencies
 
-python3 -m pip install pillow
+tested using python 3.8.6
 
-python3 -m pip install pygame==2.0.0.dev12
+python -m pip install pillow
+
+python -m pip install pygame==2.0.0.dev12
 
