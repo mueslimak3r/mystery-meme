@@ -18,6 +18,7 @@ python imageviewer.py image.png
 Image viewer controls:
 
 Quit - q / escape
+
 Zoom - + / -
 
 
