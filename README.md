@@ -1,11 +1,11 @@
 # mystery-meme
 experimental steganography encoder/decoder
 
-data is hidden in pixel data, in the least significant bits of the green and blue channels. Pixels are chosen based on a pattern generated from a provided seed value
+Input data is split into two bit chunks and encoded in the least significant bits of the green and blue channels' pixel data. Pixels are chosen based on a pattern generated from a provided seed value
 
 # usage
 
-It should work with any (common) image format that pillow/PIL supports.
+It should work with any image format Pillow/PIL supports.
 
 python encode.py -d data-to-hide.txt -i source-image.png -o exported-image.png -s 1234(seed) 
 
