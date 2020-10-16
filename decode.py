@@ -14,12 +14,12 @@ def extract_bits(g, b, image_pos, extracted_data, extracted_data_iter, extracted
     green_channel_pixel = g.getpixel(image_pos)
     blue_channel_pixel = b.getpixel(image_pos)
 
-    selected_byte = ord(extracted_data[extracted_data_iter])
+    selected_byte = extracted_data[extracted_data_iter]
 
     selected_byte |= (green_channel_pixel & 0x1) << extracted_data_bit_iter
     selected_byte |= (blue_channel_pixel & 0x1) << (extracted_data_bit_iter + 1)
 
-    extracted_data[extracted_data_iter] = str(chr(selected_byte))
+    extracted_data[extracted_data_iter] = int(selected_byte)
 
 
 '''
@@ -42,11 +42,11 @@ def retrieve_hidden_data_loop(img, extracted_data, seed):
 
     for x, y in generate_pattern(seed, img.width, img.height, img.width * img.height):
         if extracted_data_bit_iter == 0:
-            extracted_data.append('\0')
+            extracted_data.append(0)
         extract_bits(g, b, (x, y), extracted_data, extracted_data_iter, extracted_data_bit_iter)
         extracted_data_bit_iter += 2
         if extracted_data_bit_iter > 6:
-            if ord(extracted_data[extracted_data_iter]) == 0:
+            if extracted_data[extracted_data_iter] == 0:
                 return
             extracted_data_iter += 1
             extracted_data_bit_iter = 0
@@ -67,10 +67,10 @@ def decoder_wrapper(input_image, output_image, seed):
     extracted_data = []
 
     retrieve_hidden_data_loop(img, extracted_data, seed)
-    data_as_string = "".join(extracted_data)[:-1]
+    data_as_string = extracted_data[:-1]
 
-    f = open(output_image, "w", encoding="utf-8")
-    f.write(data_as_string)
+    f = open(output_image, 'wb')
+    f.write(bytearray(extracted_data[:-1]))
     img.close()
     f.close()
     print(data_as_string)

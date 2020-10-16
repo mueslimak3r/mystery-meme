@@ -17,7 +17,8 @@ def encode_bits(g, b, image_pos, input_data, input_data_iter, input_data_bit_ite
     green_channel_pixel = g.getpixel(image_pos)
     blue_channel_pixel = b.getpixel(image_pos)
 
-    selected_byte = ord(input_data[input_data_iter])
+    #selected_byte = ord(input_data[input_data_iter])
+    selected_byte = input_data[input_data_iter]
     
     green_pixel_bitmask = (selected_byte & (0x1 << input_data_bit_iter)) >> input_data_bit_iter
     blue_pixel_bitmask = (selected_byte & (0x1 << (input_data_bit_iter + 1))) >> (input_data_bit_iter + 1)
@@ -54,9 +55,8 @@ the 4 channels are merged into a new image object and saved to the filesystem
 def encoder(input_image, output_image, input_data_file, seed):
 
     img = Image.open(input_image)
-    hdatareader = open(input_data_file)
-    input_data = hdatareader.read()
-    input_data += "\00"
+    hdatareader = open(input_data_file, 'rb')
+    input_data = hdatareader.read() + b"\00"
 
     r, g, b, a = img.convert('RGBA').split()
 
