@@ -1,7 +1,7 @@
 # mystery-meme
 experimental steganography encoder/decoder
 
-Input data is split into two bit chunks and encoded in the least significant bits of the green and blue channels' pixel data. Pixels are chosen based on a pattern generated from a provided seed value
+Input data is split into two-bit chunks and encoded in the least significant bits of the green and blue channels' pixel data. Pixels are chosen based on a pattern generated from the provided seed value
 
 # usage
 
