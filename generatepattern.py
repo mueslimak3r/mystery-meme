@@ -24,7 +24,7 @@ def generate_pattern(seed, width, height, datasize):
             #print ("yielding at i: ", i, " x, y: ", x, y)
             yield x, y
 
-    print("number of points in pattern: ", unique_pixel_counter)
+    print("\nnumber of points in pattern: ", unique_pixel_counter)
     image = image.convert('RGB')
     mode = image.mode
     size = image.size
