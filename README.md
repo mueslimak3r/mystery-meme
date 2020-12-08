@@ -26,4 +26,4 @@ Zoom - + / -
 
 tested using python 3.8.6
 
-python -m pip install pillow pygame==2.0.0.dev12
+python -m pip install pillow fixedint pygame==2.0.0.dev12
