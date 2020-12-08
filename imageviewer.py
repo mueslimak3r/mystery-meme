@@ -20,7 +20,11 @@ def render_img(S = None):
     C = S.copy()
     state_changed = 1
     sample_original = 1
+
+    start_ticks=pygame.time.get_ticks()
     while True :
+
+        seconds=(pygame.time.get_ticks()-start_ticks)/1000 #calculate how many seconds
 
         for e in pygame.event.get() :
             if e.type == pygame.QUIT :
@@ -42,7 +46,9 @@ def render_img(S = None):
                     state_changed = 1
                     sample_original = 1
                 
-        if state_changed == 1:
+        if state_changed == 1 or seconds - last_update_second > 1:
+            last_update_second = seconds #set time of most recent screen draw
+
             if sample_original == 1:
                 C = pygame.transform.scale(C, (int(S.get_width()), int(S.get_height())))
                 C.blit(S, (0, 0))
@@ -53,6 +59,7 @@ def render_img(S = None):
             pygame.display.flip()
             state_changed = 0
             sample_original = 0
+
         pygame.time.wait(500)
 
 def view_image_object(imgobject, size, mode):

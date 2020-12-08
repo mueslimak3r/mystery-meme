@@ -17,7 +17,6 @@ def encode_bits(g, b, image_pos, input_data, input_data_iter, input_data_bit_ite
     green_channel_pixel = g.getpixel(image_pos)
     blue_channel_pixel = b.getpixel(image_pos)
 
-    #selected_byte = ord(input_data[input_data_iter])
     selected_byte = input_data[input_data_iter]
     
     green_pixel_bitmask = (selected_byte & (0x1 << input_data_bit_iter)) >> input_data_bit_iter
@@ -41,7 +40,9 @@ encoder
 
 opens image and converts to 4 x 8bit RGBA
 
-reads input data, and appends null byte to signal EOF for decoder
+reads input data, gets length of input data and serializes the int value this length
+
+the data to be encoded in now the length value joined to the input data, as a bitarray
 
 uses generator function, supplied with the seed, to generate x, y pairs
 The last call of this function opens the pygame window that displays the pattern visually
@@ -56,13 +57,22 @@ def encoder(input_image, output_image, input_data_file, seed):
 
     img = Image.open(input_image)
     hdatareader = open(input_data_file, 'rb')
-    input_data = hdatareader.read() + b"\00"
+    input_data = hdatareader.read()
 
     r, g, b, a = img.convert('RGBA').split()
 
+
     input_data_len = len(input_data) * 4
+    
+    print("original size of input data (in pixels used): ", input_data_len)
+    
     input_data_iter = 0
     input_data_bit_iter = 0
+
+    data_len_serialized = input_data_len.to_bytes(input_data_len.bit_length(), byteorder='little', signed=False) # needs to pad bitfield so length of this is predictable
+    input_data = data_len_serialized + input_data
+
+    input_data_len = len(input_data) * 4
 
     print("image mode before conversion: ", img.mode)
     if input_data_len > img.width * img.height:
@@ -74,10 +84,9 @@ def encoder(input_image, output_image, input_data_file, seed):
         encode_bits(g, b, (x, y), input_data, input_data_iter, input_data_bit_iter)
         input_data_bit_iter += 2
         if input_data_bit_iter > 6:
+            #print(input_data[input_data_iter], end=' ')
             input_data_iter += 1
             input_data_bit_iter = 0
-
-    #print (hdata)
  
     newimage = Image.merge('RGBA', (r, g, b, a))
     newimage.save(output_image, 'PNG')
