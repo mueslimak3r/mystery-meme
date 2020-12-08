@@ -1,5 +1,6 @@
 import sys, getopt
 
+import fixedint
 from PIL import Image
 from pathlib import Path
 
@@ -69,7 +70,8 @@ def encoder(input_image, output_image, input_data_file, seed):
     input_data_iter = 0
     input_data_bit_iter = 0
 
-    data_len_serialized = input_data_len.to_bytes(input_data_len.bit_length(), byteorder='little', signed=False) # needs to pad bitfield so length of this is predictable
+    data_len_serialized = fixedint.UInt32(input_data_len).to_bytes()
+    #data_len_serialized = input_data_len.to_bytes(input_data_len.bit_length(), byteorder='little', signed=False) # needs to pad bitfield so length of this is predictable
     input_data = data_len_serialized + input_data
 
     input_data_len = len(input_data) * 4

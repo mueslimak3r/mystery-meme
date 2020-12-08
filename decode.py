@@ -1,3 +1,4 @@
+import fixedint
 import sys, getopt
 from PIL import Image
 
@@ -53,8 +54,8 @@ def retrieve_hidden_data_loop(img, extracted_data, seed):
         extract_bits(g, b, (x, y), extracted_data, extracted_data_iter, extracted_data_bit_iter)
         extracted_data_bit_iter += 2
         if extracted_data_bit_iter > 6:
-            if extracted_data_iter == 12:
-                size = int.from_bytes(bytearray(extracted_data[:-(len(extracted_data) - extracted_data_iter)]), byteorder='little')
+            if extracted_data_iter == 3:
+                size = fixedint.UInt32.from_bytes(bytearray(extracted_data[:-(len(extracted_data) - extracted_data_iter)]), byteorder='little')
                 print(size)
                 countdown = size
             extracted_data_iter += 1
@@ -79,7 +80,7 @@ def decoder_wrapper(input_image, output_image, seed):
     #data_as_string = extracted_data
 
     f = open(output_image, 'wb')
-    f.write(bytearray(extracted_data)) # needs to splice out leading bytes containing length
+    f.write(bytearray(extracted_data[4:])) # needs to splice out leading bytes containing length
     img.close()
     f.close()
     #print(data_as_string)
