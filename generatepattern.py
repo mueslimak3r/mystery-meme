@@ -11,11 +11,12 @@ def generate_pattern(seed, width, height, datasize):
 
     mask = [0] * width * height
     unique_pixel_counter = 0
-
+    generated_coordinates_counter = 0
     random.seed(seed)
     i = 0
     while i < datasize:
         x, y = random.randint(0, width - 1), random.randint(0, height - 1)
+        generated_coordinates_counter += 1
         if mask[(y * width) + x] == 0:
             image.putpixel((x, y), 1)
             unique_pixel_counter += 1
@@ -24,7 +25,8 @@ def generate_pattern(seed, width, height, datasize):
             #print ("yielding at i: ", i, " x, y: ", x, y)
             yield x, y
 
-    print("\nnumber of points in pattern: ", unique_pixel_counter)
+    print("\ngenerated pattern using ", unique_pixel_counter, "unique pixel coordinates out of ", generated_coordinates_counter, "total pixel coordinates generated, percent of points unique: %", (unique_pixel_counter / generated_coordinates_counter) * 100)
+    #print("\nnumber of points in pattern: ", unique_pixel_counter)
     image = image.convert('RGB')
     mode = image.mode
     size = image.size
